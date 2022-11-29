@@ -20,5 +20,8 @@
     "route",
     "routing",
     "scriptable"
-  ]
+  ],
+  "devDependencies": {
+    "cpy-cli": "^4.2.0"
+  }
 }
