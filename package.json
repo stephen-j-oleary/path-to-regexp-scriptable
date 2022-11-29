@@ -14,6 +14,7 @@
   "module": "dist.es2015/index.js",
   "scripts": {
     "build": "ts-scripts build",
+    "copy-to-scriptable": "cpy ./dist/index.js ~/Library/Mobile\\ Documents/iCloud\\~dk\\~simonbs\\~Scriptable/Documents/path-to-regexp-scriptable.js",
     "format": "ts-scripts format",
     "lint": "ts-scripts lint",
     "prepare": "ts-scripts install && npm run build",
