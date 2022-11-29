@@ -12,7 +12,7 @@
   },
   "main": "src/index.js",
   "scripts": {
-    "copy-to-scriptable": "cpy ./src/index.js ~/Library/Mobile\\ Documents/iCloud\\~dk\\~simonbs\\~Scriptable/Documents/path-to-regexp-scriptable.js"
+    "copy-to-scriptable": "cpy ./src/index.js ~/Library/Mobile\\ Documents/iCloud\\~dk\\~simonbs\\~Scriptable/Documents --rename=path-to-regexp-scriptable.js"
   },
   "keywords": [
     "express",
