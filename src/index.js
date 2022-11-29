@@ -109,7 +109,7 @@ function lexer(str) {
 /**
  * Parse a string for the raw tokens.
  */
-export function parse(str, options = {}) {
+function parse(str, options = {}) {
   const tokens = lexer(str);
   const { prefixes = "./" } = options;
   const defaultPattern = `[^${escapeString(options.delimiter || "/#?")}]+?`;
@@ -205,14 +205,14 @@ export function parse(str, options = {}) {
 /**
  * Compile a string to a template function for the path.
  */
-export function compile(str, options) {
+function compile(str, options) {
   return tokensToFunction(parse(str, options), options);
 }
 
 /**
  * Expose a method for transforming tokens into the path function.
  */
-export function tokensToFunction(tokens, options = {}) {
+function tokensToFunction(tokens, options = {}) {
   const reFlags = flags(options);
   const { encode = (x) => x, validate = true } = options;
 
@@ -292,7 +292,7 @@ export function tokensToFunction(tokens, options = {}) {
 /**
  * Create path match function from `path-to-regexp` spec.
  */
-export function match(str, options) {
+function match(str, options) {
   const keys = [];
   const re = pathToRegexp(str, keys, options);
   return regexpToFunction(re, keys, options);
@@ -301,7 +301,7 @@ export function match(str, options) {
 /**
  * Create a path match function from `path-to-regexp` output.
  */
-export function regexpToFunction(re, keys, options = {}) {
+function regexpToFunction(re, keys, options = {}) {
   const { decode = (x) => x } = options;
 
   return function (pathname) {
@@ -386,7 +386,7 @@ function stringToRegexp(path, keys, options) {
 /**
  * Expose a function for taking tokens and returning a RegExp.
  */
-export function tokensToRegexp(tokens, keys, options = {}) {
+function tokensToRegexp(tokens, keys, options = {}) {
   const {
     strict = false,
     start = true,
@@ -460,8 +460,18 @@ export function tokensToRegexp(tokens, keys, options = {}) {
  * placeholder key descriptions. For example, using `/user/:id`, `keys` will
  * contain `[{ name: 'id', delimiter: '/', optional: false, repeat: false }]`.
  */
-export function pathToRegexp(path, keys, options) {
+function pathToRegexp(path, keys, options) {
   if (path instanceof RegExp) return regexpToRegexp(path, keys);
   if (Array.isArray(path)) return arrayToRegexp(path, keys, options);
   return stringToRegexp(path, keys, options);
+}
+
+module.exports = {
+  parse,
+  compile,
+  tokensToFunction,
+  match,
+  regexpToFunction,
+  tokensToRegexp,
+  pathToRegexp
 }
