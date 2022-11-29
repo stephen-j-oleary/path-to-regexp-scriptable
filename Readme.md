@@ -1,4 +1,4 @@
-# Path-to-RegExp
+# Path-to-RegExp-Scriptable
 
 > Turn a path string such as `/user/:name` into a regular expression.
 
@@ -10,14 +10,24 @@
 
 ## Installation
 
+To install the necessary npm packages and build the package, run:
+
 ```
-npm install path-to-regexp --save
+npm run prepare
 ```
+
+To move the built package to Scriptable, run:
+
+```
+npm run copy-to-scriptable
+```
+
+By default, the package will be named `path-to-regexp-scriptable`
 
 ## Usage
 
 ```javascript
-const { pathToRegexp, match, parse, compile } = require("path-to-regexp");
+const { pathToRegexp, match, parse, compile } = importModule("path-to-regexp");
 
 // pathToRegexp(path, keys?, options?)
 // match(path)
