@@ -10,13 +10,13 @@
 
 ## Installation
 
-To move the built package to Scriptable, run:
+To start using the package in Scriptable, either copy index.js to your Scriptable folder or run:
 
 ```
-npm run copy-to-scriptable
+npm run use
 ```
 
-By default, the package will be named `path-to-regexp-scriptable`
+By default, the package will be copied to `~/Library/Mobile Documents/iCloud~dk~simonbs~Scriptable/Documents` and named `path-to-regexp-scriptable`
 
 ## Usage
 
