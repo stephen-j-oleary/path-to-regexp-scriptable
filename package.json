@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/pillarjs/path-to-regexp.git"
   },
-  "main": "src/index.js",
+  "main": "index.js",
   "scripts": {
     "preuse": "npm install",
     "use": "cpy ./index.js ~/Library/Mobile\\ Documents/iCloud\\~dk\\~simonbs\\~Scriptable/Documents --rename=path-to-regexp-scriptable.js"
