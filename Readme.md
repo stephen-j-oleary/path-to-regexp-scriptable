@@ -10,12 +10,6 @@
 
 ## Installation
 
-To install the necessary npm packages and build the package, run:
-
-```
-npm run prepare
-```
-
 To move the built package to Scriptable, run:
 
 ```

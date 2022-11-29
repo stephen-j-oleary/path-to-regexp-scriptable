@@ -1,25 +1,8 @@
 /**
- * Tokenizer results.
- */
-interface LexToken {
-  type:
-    | "OPEN"
-    | "CLOSE"
-    | "PATTERN"
-    | "NAME"
-    | "CHAR"
-    | "ESCAPED_CHAR"
-    | "MODIFIER"
-    | "END";
-  index: number;
-  value: string;
-}
-
-/**
  * Tokenize input string.
  */
-function lexer(str: string): LexToken[] {
-  const tokens: LexToken[] = [];
+function lexer(str) {
+  const tokens = [];
   let i = 0;
 
   while (i < str.length) {
@@ -123,43 +106,32 @@ function lexer(str: string): LexToken[] {
   return tokens;
 }
 
-export interface ParseOptions {
-  /**
-   * Set the default delimiter for repeat parameters. (default: `'/'`)
-   */
-  delimiter?: string;
-  /**
-   * List of characters to automatically consider prefixes when parsing.
-   */
-  prefixes?: string;
-}
-
 /**
  * Parse a string for the raw tokens.
  */
-export function parse(str: string, options: ParseOptions = {}): Token[] {
+export function parse(str, options = {}) {
   const tokens = lexer(str);
   const { prefixes = "./" } = options;
   const defaultPattern = `[^${escapeString(options.delimiter || "/#?")}]+?`;
-  const result: Token[] = [];
+  const result = [];
   let key = 0;
   let i = 0;
   let path = "";
 
-  const tryConsume = (type: LexToken["type"]): string | undefined => {
+  const tryConsume = (type) => {
     if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
   };
 
-  const mustConsume = (type: LexToken["type"]): string => {
+  const mustConsume = (type) => {
     const value = tryConsume(type);
     if (value !== undefined) return value;
     const { type: nextType, index } = tokens[i];
     throw new TypeError(`Unexpected ${nextType} at ${index}, expected ${type}`);
   };
 
-  const consumeText = (): string => {
+  const consumeText = () => {
     let result = "";
-    let value: string | undefined;
+    let value;
     while ((value = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR"))) {
       result += value;
     }
@@ -230,42 +202,19 @@ export function parse(str: string, options: ParseOptions = {}): Token[] {
   return result;
 }
 
-export interface TokensToFunctionOptions {
-  /**
-   * When `true` the regexp will be case sensitive. (default: `false`)
-   */
-  sensitive?: boolean;
-  /**
-   * Function for encoding input strings for output.
-   */
-  encode?: (value: string, token: Key) => string;
-  /**
-   * When `false` the function can produce an invalid (unmatched) path. (default: `true`)
-   */
-  validate?: boolean;
-}
-
 /**
  * Compile a string to a template function for the path.
  */
-export function compile<P extends object = object>(
-  str: string,
-  options?: ParseOptions & TokensToFunctionOptions
-) {
-  return tokensToFunction<P>(parse(str, options), options);
+export function compile(str, options) {
+  return tokensToFunction(parse(str, options), options);
 }
-
-export type PathFunction<P extends object = object> = (data?: P) => string;
 
 /**
  * Expose a method for transforming tokens into the path function.
  */
-export function tokensToFunction<P extends object = object>(
-  tokens: Token[],
-  options: TokensToFunctionOptions = {}
-): PathFunction<P> {
+export function tokensToFunction(tokens, options = {}) {
   const reFlags = flags(options);
-  const { encode = (x: string) => x, validate = true } = options;
+  const { encode = (x) => x, validate = true } = options;
 
   // Compile all the tokens into regexps.
   const matches = tokens.map((token) => {
@@ -274,7 +223,7 @@ export function tokensToFunction<P extends object = object>(
     }
   });
 
-  return (data: Record<string, any> | null | undefined) => {
+  return (data) => {
     let path = "";
 
     for (let i = 0; i < tokens.length; i++) {
@@ -305,7 +254,7 @@ export function tokensToFunction<P extends object = object>(
         for (let j = 0; j < value.length; j++) {
           const segment = encode(value[j], token);
 
-          if (validate && !(matches[i] as RegExp).test(segment)) {
+          if (validate && !matches[i].test(segment)) {
             throw new TypeError(
               `Expected all "${token.name}" to match "${token.pattern}", but got "${segment}"`
             );
@@ -320,7 +269,7 @@ export function tokensToFunction<P extends object = object>(
       if (typeof value === "string" || typeof value === "number") {
         const segment = encode(String(value), token);
 
-        if (validate && !(matches[i] as RegExp).test(segment)) {
+        if (validate && !matches[i].test(segment)) {
           throw new TypeError(
             `Expected "${token.name}" to match "${token.pattern}", but got "${segment}"`
           );
@@ -340,57 +289,22 @@ export function tokensToFunction<P extends object = object>(
   };
 }
 
-export interface RegexpToFunctionOptions {
-  /**
-   * Function for decoding strings for params.
-   */
-  decode?: (value: string, token: Key) => string;
-}
-
-/**
- * A match result contains data about the path match.
- */
-export interface MatchResult<P extends object = object> {
-  path: string;
-  index: number;
-  params: P;
-}
-
-/**
- * A match is either `false` (no match) or a match result.
- */
-export type Match<P extends object = object> = false | MatchResult<P>;
-
-/**
- * The match function takes a string and returns whether it matched the path.
- */
-export type MatchFunction<P extends object = object> = (
-  path: string
-) => Match<P>;
-
 /**
  * Create path match function from `path-to-regexp` spec.
  */
-export function match<P extends object = object>(
-  str: Path,
-  options?: ParseOptions & TokensToRegexpOptions & RegexpToFunctionOptions
-) {
-  const keys: Key[] = [];
+export function match(str, options) {
+  const keys = [];
   const re = pathToRegexp(str, keys, options);
-  return regexpToFunction<P>(re, keys, options);
+  return regexpToFunction(re, keys, options);
 }
 
 /**
  * Create a path match function from `path-to-regexp` output.
  */
-export function regexpToFunction<P extends object = object>(
-  re: RegExp,
-  keys: Key[],
-  options: RegexpToFunctionOptions = {}
-): MatchFunction<P> {
-  const { decode = (x: string) => x } = options;
+export function regexpToFunction(re, keys, options = {}) {
+  const { decode = (x) => x } = options;
 
-  return function (pathname: string) {
+  return function (pathname) {
     const m = re.exec(pathname);
     if (!m) return false;
 
@@ -418,37 +332,21 @@ export function regexpToFunction<P extends object = object>(
 /**
  * Escape a regular expression string.
  */
-function escapeString(str: string) {
+function escapeString(str) {
   return str.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
 }
 
 /**
  * Get the flags for a regexp from the options.
  */
-function flags(options?: { sensitive?: boolean }) {
-  return options && options.sensitive ? "" : "i";
+function flags({ sensitive }) {
+  return sensitive ? "" : "i";
 }
-
-/**
- * Metadata about a key.
- */
-export interface Key {
-  name: string | number;
-  prefix: string;
-  suffix: string;
-  pattern: string;
-  modifier: string;
-}
-
-/**
- * A token is a string (nothing special) or key metadata (capture group).
- */
-export type Token = string | Key;
 
 /**
  * Pull out keys from a regexp.
  */
-function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
+function regexpToRegexp(path, keys) {
   if (!keys) return path;
 
   const groupsRegex = /\((?:\?<(.*?)>)?(?!\?)/g;
@@ -473,11 +371,7 @@ function regexpToRegexp(path: RegExp, keys?: Key[]): RegExp {
 /**
  * Transform an array into a regexp.
  */
-function arrayToRegexp(
-  paths: Array<string | RegExp>,
-  keys?: Key[],
-  options?: TokensToRegexpOptions & ParseOptions
-): RegExp {
+function arrayToRegexp(paths, keys, options) {
   const parts = paths.map((path) => pathToRegexp(path, keys, options).source);
   return new RegExp(`(?:${parts.join("|")})`, flags(options));
 }
@@ -485,58 +379,19 @@ function arrayToRegexp(
 /**
  * Create a path regexp from string input.
  */
-function stringToRegexp(
-  path: string,
-  keys?: Key[],
-  options?: TokensToRegexpOptions & ParseOptions
-) {
+function stringToRegexp(path, keys, options) {
   return tokensToRegexp(parse(path, options), keys, options);
-}
-
-export interface TokensToRegexpOptions {
-  /**
-   * When `true` the regexp will be case sensitive. (default: `false`)
-   */
-  sensitive?: boolean;
-  /**
-   * When `true` the regexp won't allow an optional trailing delimiter to match. (default: `false`)
-   */
-  strict?: boolean;
-  /**
-   * When `true` the regexp will match to the end of the string. (default: `true`)
-   */
-  end?: boolean;
-  /**
-   * When `true` the regexp will match from the beginning of the string. (default: `true`)
-   */
-  start?: boolean;
-  /**
-   * Sets the final character for non-ending optimistic matches. (default: `/`)
-   */
-  delimiter?: string;
-  /**
-   * List of characters that can also be "end" characters.
-   */
-  endsWith?: string;
-  /**
-   * Encode path tokens for use in the `RegExp`.
-   */
-  encode?: (value: string) => string;
 }
 
 /**
  * Expose a function for taking tokens and returning a RegExp.
  */
-export function tokensToRegexp(
-  tokens: Token[],
-  keys?: Key[],
-  options: TokensToRegexpOptions = {}
-) {
+export function tokensToRegexp(tokens, keys, options = {}) {
   const {
     strict = false,
     start = true,
     end = true,
-    encode = (x: string) => x,
+    encode = (x) => x,
     delimiter = "/#?",
     endsWith = "",
   } = options;
@@ -599,22 +454,13 @@ export function tokensToRegexp(
 }
 
 /**
- * Supported `path-to-regexp` input types.
- */
-export type Path = string | RegExp | Array<string | RegExp>;
-
-/**
  * Normalize the given path string, returning a regular expression.
  *
  * An empty array can be passed in for the keys, which will hold the
  * placeholder key descriptions. For example, using `/user/:id`, `keys` will
  * contain `[{ name: 'id', delimiter: '/', optional: false, repeat: false }]`.
  */
-export function pathToRegexp(
-  path: Path,
-  keys?: Key[],
-  options?: TokensToRegexpOptions & ParseOptions
-) {
+export function pathToRegexp(path, keys, options) {
   if (path instanceof RegExp) return regexpToRegexp(path, keys);
   if (Array.isArray(path)) return arrayToRegexp(path, keys, options);
   return stringToRegexp(path, keys, options);
